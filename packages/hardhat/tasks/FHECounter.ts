@@ -1,6 +1,8 @@
 import { FhevmType } from "@fhevm/hardhat-plugin";
 import { task } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
+import type { FHECounter } from "../typechain-types/contracts/FHECounter";
+import "hardhat-deploy";
 
 /**
  * Tutorial: Deploy and Interact Locally (--network localhost)
@@ -70,7 +72,10 @@ task("task:decrypt-count", "Calls the getCount() function of Counter Contract")
 
     const signers = await ethers.getSigners();
 
-    const fheCounterContract = await ethers.getContractAt("FHECounter", FHECounterDeployement.address);
+    const fheCounterContract = (await ethers.getContractAt(
+      "FHECounter",
+      FHECounterDeployement.address,
+    )) as unknown as FHECounter;
 
     const encryptedCount = await fheCounterContract.getCount();
     if (encryptedCount === ethers.ZeroHash) {
@@ -114,7 +119,10 @@ task("task:increment", "Calls the increment() function of FHECounter Contract")
 
     const signers = await ethers.getSigners();
 
-    const fheCounterContract = await ethers.getContractAt("FHECounter", FHECounterDeployement.address);
+    const fheCounterContract = (await ethers.getContractAt(
+      "FHECounter",
+      FHECounterDeployement.address,
+    )) as unknown as FHECounter;
 
     // Encrypt the value passed as argument
     const encryptedValue = await fhevm
@@ -161,7 +169,10 @@ task("task:decrement", "Calls the decrement() function of FHECounter Contract")
 
     const signers = await ethers.getSigners();
 
-    const fheCounterContract = await ethers.getContractAt("FHECounter", FHECounterDeployement.address);
+    const fheCounterContract = (await ethers.getContractAt(
+      "FHECounter",
+      FHECounterDeployement.address,
+    )) as unknown as FHECounter;
 
     // Encrypt the value passed as argument
     const encryptedValue = await fhevm

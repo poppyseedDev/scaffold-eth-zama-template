@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 pragma solidity ^0.8.24;
 
-import { SepoliaZamaOracleAddress } from "@zama-fhe/oracle-solidity/address/ZamaOracleAddress.sol";
-import { FHE } from "@fhevm/solidity/lib/FHE.sol";
-import { FHEVMConfigStruct } from "@fhevm/solidity/lib/Impl.sol";
+import {SepoliaZamaOracleAddress} from "@zama-fhe/oracle-solidity/address/ZamaOracleAddress.sol";
+import {FHE} from "@fhevm/solidity/lib/FHE.sol";
+import {FHEVMConfigStruct} from "@fhevm/solidity/lib/Impl.sol";
 
 /**
  * @title   ZamaConfig.

@@ -6,8 +6,64 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
 const deployedContracts = {
   31337: {
+    FHECounter: {
+      address: "0x17319CDEf9593d05Ce0F47Fe3C34977C97C05cD1",
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "externalEuint32",
+              name: "inputEuint32",
+              type: "bytes32",
+            },
+            {
+              internalType: "bytes",
+              name: "inputProof",
+              type: "bytes",
+            },
+          ],
+          name: "decrement",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "getCount",
+          outputs: [
+            {
+              internalType: "euint32",
+              name: "",
+              type: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "externalEuint32",
+              name: "inputEuint32",
+              type: "bytes32",
+            },
+            {
+              internalType: "bytes",
+              name: "inputProof",
+              type: "bytes",
+            },
+          ],
+          name: "increment",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ],
+      inheritedFunctions: {},
+      deployedOnBlock: 9,
+    },
     YourContract: {
-      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      address: "0x40e8Aa088739445BC3a3727A724F56508899f65B",
       abi: [
         {
           inputs: [
@@ -148,7 +204,65 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 1,
+      deployedOnBlock: 7,
+    },
+  },
+  11155111: {
+    FHECounter: {
+      address: "0xB91d30a4F69F50B0918DF8e883B6D06cA19B4FdE",
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "externalEuint32",
+              name: "inputEuint32",
+              type: "bytes32",
+            },
+            {
+              internalType: "bytes",
+              name: "inputProof",
+              type: "bytes",
+            },
+          ],
+          name: "decrement",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "getCount",
+          outputs: [
+            {
+              internalType: "euint32",
+              name: "",
+              type: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "externalEuint32",
+              name: "inputEuint32",
+              type: "bytes32",
+            },
+            {
+              internalType: "bytes",
+              name: "inputProof",
+              type: "bytes",
+            },
+          ],
+          name: "increment",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ],
+      inheritedFunctions: {},
+      deployedOnBlock: 9083016,
     },
   },
 } as const;
