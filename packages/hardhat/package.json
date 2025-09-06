@@ -22,16 +22,21 @@
     "verify": "hardhat etherscan-verify"
   },
   "dependencies": {
+    "@fhevm/solidity": "^0.7.0",
     "@inquirer/password": "^4.0.2",
     "@openzeppelin/contracts": "~5.0.2",
     "@typechain/ethers-v6": "~0.5.1",
+    "@zama-fhe/oracle-solidity": "^0.1.0",
     "dotenv": "~16.4.5",
+    "encrypted-types": "^0.0.4",
     "envfile": "~7.1.0",
     "qrcode": "~1.5.4"
   },
   "devDependencies": {
     "@ethersproject/abi": "~5.7.0",
     "@ethersproject/providers": "~5.7.2",
+    "@fhevm/hardhat-plugin": "^0.0.1-6",
+    "@fhevm/mock-utils": "^0.0.1-6",
     "@nomicfoundation/hardhat-chai-matchers": "~2.0.7",
     "@nomicfoundation/hardhat-ethers": "~3.0.8",
     "@nomicfoundation/hardhat-network-helpers": "~1.0.11",
@@ -44,6 +49,7 @@
     "@types/qrcode": "~1.5.5",
     "@typescript-eslint/eslint-plugin": "~8.27.0",
     "@typescript-eslint/parser": "~8.27.0",
+    "@zama-fhe/relayer-sdk": "^0.1.2",
     "chai": "~4.5.0",
     "eslint": "~9.23.0",
     "eslint-config-prettier": "~10.1.1",

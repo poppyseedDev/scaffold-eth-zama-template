@@ -1,5 +1,6 @@
 import * as dotenv from "dotenv";
 dotenv.config();
+import "@fhevm/hardhat-plugin";
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-chai-matchers";
@@ -11,6 +12,10 @@ import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import { task } from "hardhat/config";
 import generateTsAbis from "./scripts/generateTsAbis";
+import { vars } from "hardhat/config";
+
+import "./tasks/accounts";
+import "./tasks/FHECounter";
 
 // If not set, it uses ours Alchemy's default API key.
 // You can get your own at https://dashboard.alchemyapi.io
@@ -22,11 +27,14 @@ const deployerPrivateKey =
 // If not set, it uses our block explorers default API keys.
 const etherscanApiKey = process.env.ETHERSCAN_V2_API_KEY || "DNXJA8RX2Q3VZ4URQIWP7Z68CJXQZSC6AW";
 
+const MNEMONIC: string = vars.get("MNEMONIC", "test test test test test test test test test test test junk");
+// const INFURA_API_KEY: string = vars.get("INFURA_API_KEY", "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz");
+
 const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: "0.8.20",
+        version: "0.8.27",
         settings: {
           optimizer: {
             enabled: true,
@@ -48,19 +56,37 @@ const config: HardhatUserConfig = {
     // View the networks that are pre-configured.
     // If the network you are looking for is not here you can add new network settings
     hardhat: {
-      forking: {
-        url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
-        enabled: process.env.MAINNET_FORKING_ENABLED === "true",
+      accounts: {
+        mnemonic: MNEMONIC,
       },
+      chainId: 31337,
     },
     mainnet: {
       url: "https://mainnet.rpc.buidlguidl.com",
       accounts: [deployerPrivateKey],
     },
+    anvil: {
+      accounts: {
+        mnemonic: MNEMONIC,
+        path: "m/44'/60'/0'/0/",
+        count: 10,
+      },
+      chainId: 31337,
+      url: "http://localhost:8545",
+    },
     sepolia: {
       url: `https://eth-sepolia.g.alchemy.com/v2/${providerApiKey}`,
       accounts: [deployerPrivateKey],
     },
+    // sepolia: {
+    //   accounts: {
+    //     mnemonic: MNEMONIC,
+    //     path: "m/44'/60'/0'/0/",
+    //     count: 10,
+    //   },
+    //   chainId: 11155111,
+    //   url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
+    // },
     arbitrum: {
       url: `https://arb-mainnet.g.alchemy.com/v2/${providerApiKey}`,
       accounts: [deployerPrivateKey],
