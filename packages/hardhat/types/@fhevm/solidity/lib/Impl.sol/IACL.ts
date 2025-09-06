@@ -28,52 +28,22 @@ export interface IACLInterface extends Interface {
       | "allowTransient"
       | "cleanTransientStorage"
       | "isAllowed"
-      | "isAllowedForDecryption"
+      | "isAllowedForDecryption",
   ): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "allow",
-    values: [BytesLike, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "allowForDecryption",
-    values: [BytesLike[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "allowTransient",
-    values: [BytesLike, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "cleanTransientStorage",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isAllowed",
-    values: [BytesLike, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isAllowedForDecryption",
-    values: [BytesLike]
-  ): string;
+  encodeFunctionData(functionFragment: "allow", values: [BytesLike, AddressLike]): string;
+  encodeFunctionData(functionFragment: "allowForDecryption", values: [BytesLike[]]): string;
+  encodeFunctionData(functionFragment: "allowTransient", values: [BytesLike, AddressLike]): string;
+  encodeFunctionData(functionFragment: "cleanTransientStorage", values?: undefined): string;
+  encodeFunctionData(functionFragment: "isAllowed", values: [BytesLike, AddressLike]): string;
+  encodeFunctionData(functionFragment: "isAllowedForDecryption", values: [BytesLike]): string;
 
   decodeFunctionResult(functionFragment: "allow", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "allowForDecryption",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "allowTransient",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "cleanTransientStorage",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "allowForDecryption", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "allowTransient", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "cleanTransientStorage", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isAllowed", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "isAllowedForDecryption",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "isAllowedForDecryption", data: BytesLike): Result;
 }
 
 export interface IACL extends BaseContract {
@@ -85,106 +55,58 @@ export interface IACL extends BaseContract {
   queryFilter<TCEvent extends TypedContractEvent>(
     event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TypedEventLog<TCEvent>>>;
   queryFilter<TCEvent extends TypedContractEvent>(
     filter: TypedDeferredTopicFilter<TCEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(event: TCEvent, listener: TypedListener<TCEvent>): Promise<this>;
   on<TCEvent extends TypedContractEvent>(
     filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
 
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(event: TCEvent, listener: TypedListener<TCEvent>): Promise<this>;
   once<TCEvent extends TypedContractEvent>(
     filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
 
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners<TCEvent extends TypedContractEvent>(event: TCEvent): Promise<Array<TypedListener<TCEvent>>>;
   listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(event?: TCEvent): Promise<this>;
 
-  allow: TypedContractMethod<
-    [handle: BytesLike, account: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  allow: TypedContractMethod<[handle: BytesLike, account: AddressLike], [void], "nonpayable">;
 
-  allowForDecryption: TypedContractMethod<
-    [handlesList: BytesLike[]],
-    [void],
-    "nonpayable"
-  >;
+  allowForDecryption: TypedContractMethod<[handlesList: BytesLike[]], [void], "nonpayable">;
 
-  allowTransient: TypedContractMethod<
-    [ciphertext: BytesLike, account: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  allowTransient: TypedContractMethod<[ciphertext: BytesLike, account: AddressLike], [void], "nonpayable">;
 
   cleanTransientStorage: TypedContractMethod<[], [void], "nonpayable">;
 
-  isAllowed: TypedContractMethod<
-    [handle: BytesLike, account: AddressLike],
-    [boolean],
-    "view"
-  >;
+  isAllowed: TypedContractMethod<[handle: BytesLike, account: AddressLike], [boolean], "view">;
 
-  isAllowedForDecryption: TypedContractMethod<
-    [handle: BytesLike],
-    [boolean],
-    "view"
-  >;
+  isAllowedForDecryption: TypedContractMethod<[handle: BytesLike], [boolean], "view">;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  getFunction<T extends ContractMethod = ContractMethod>(key: string | FunctionFragment): T;
 
   getFunction(
-    nameOrSignature: "allow"
-  ): TypedContractMethod<
-    [handle: BytesLike, account: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    nameOrSignature: "allow",
+  ): TypedContractMethod<[handle: BytesLike, account: AddressLike], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "allowForDecryption"
+    nameOrSignature: "allowForDecryption",
   ): TypedContractMethod<[handlesList: BytesLike[]], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "allowTransient"
-  ): TypedContractMethod<
-    [ciphertext: BytesLike, account: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+    nameOrSignature: "allowTransient",
+  ): TypedContractMethod<[ciphertext: BytesLike, account: AddressLike], [void], "nonpayable">;
+  getFunction(nameOrSignature: "cleanTransientStorage"): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "cleanTransientStorage"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "isAllowed"
-  ): TypedContractMethod<
-    [handle: BytesLike, account: AddressLike],
-    [boolean],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "isAllowedForDecryption"
-  ): TypedContractMethod<[handle: BytesLike], [boolean], "view">;
+    nameOrSignature: "isAllowed",
+  ): TypedContractMethod<[handle: BytesLike, account: AddressLike], [boolean], "view">;
+  getFunction(nameOrSignature: "isAllowedForDecryption"): TypedContractMethod<[handle: BytesLike], [boolean], "view">;
 
   filters: {};
 }
