@@ -1,13 +1,16 @@
-# 🏗 Scaffold-ETH 2
+# 🏗 Scaffold-ETH 2 ZAMA template
 
 <h4 align="center">
-  <a href="https://docs.scaffoldeth.io">Documentation</a> |
+  <a href="https://docs.scaffoldeth.io">ScaffoldETH docs</a> |
   <a href="https://scaffoldeth.io">Website</a>
+  <br>
+  <a href="https://docs.zama.ai/homepage/">ZAMA docs</a> |
+  <a href="https://www.zama.ai/">Website</a>
 </h4>
 
-🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts.
+🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain with confidential transactions support. This Scaffold-ETH 2 ZAMA template is designed to make it easier for developers to create and deploy smart contracts with privacy-preserving capabilities and build user interfaces that interact with those contracts.
 
-⚙️ Built using NextJS, RainbowKit, Hardhat, Wagmi, Viem, and Typescript.
+⚙️ Built using NextJS, FHEVM, RainbowKit, Hardhat, Wagmi, Viem, and Typescript.
 
 - ✅ **Contract Hot Reload**: Your frontend auto-adapts to your smart contract as you edit it.
 - 🪝 **[Custom hooks](https://docs.scaffoldeth.io/hooks/)**: Collection of React hooks wrapper around [wagmi](https://wagmi.sh/) to simplify interactions with smart contracts with typescript autocompletion.
