@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MetaMaskEthersSignerProvider } from "../hooks/fhevm/metamask/useMetaMaskEthersSigner";
-import { MetaMaskProvider } from "../hooks/fhevm/metamask/useMetaMaskProvider";
 import { InMemoryStorageProvider } from "../hooks/fhevm/useInMemoryStorage";
 import { RainbowKitProvider, darkTheme, lightTheme } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -57,11 +55,7 @@ export const ScaffoldEthAppWithProviders = ({ children }: { children: React.Reac
         >
           <ProgressBar height="3px" color="#2299dd" />
           <ScaffoldEthApp>
-            <MetaMaskProvider>
-              <MetaMaskEthersSignerProvider initialMockChains={{ 31337: "http://localhost:8545" }}>
-                <InMemoryStorageProvider>{children}</InMemoryStorageProvider>
-              </MetaMaskEthersSignerProvider>
-            </MetaMaskProvider>
+            <InMemoryStorageProvider>{children}</InMemoryStorageProvider>
           </ScaffoldEthApp>
         </RainbowKitProvider>
       </QueryClientProvider>

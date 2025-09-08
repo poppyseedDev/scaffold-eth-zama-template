@@ -1,10 +1,10 @@
 "use client";
 
+import { useMemo } from "react";
 import { useFhevm } from "../fhevm/useFhevm";
-import { useMetaMaskEthersSigner } from "../hooks/fhevm/metamask/useMetaMaskEthersSigner";
-import { useFHECounter } from "../hooks/fhevm/useFHECounter";
+import { useFHECounterWagmi } from "../hooks/fhevm/useFHECounterWagmi";
 import { useInMemoryStorage } from "../hooks/fhevm/useInMemoryStorage";
-import { errorNotDeployed } from "./ErrorNotDeployed";
+import { useAccount } from "wagmi";
 
 /*
  * Main FHECounter React component with 3 buttons
@@ -14,22 +14,23 @@ import { errorNotDeployed } from "./ErrorNotDeployed";
  */
 export const FHECounterDemo = () => {
   const { storage: fhevmDecryptionSignatureStorage } = useInMemoryStorage();
-  const {
-    provider,
-    chainId,
-    accounts,
-    isConnected,
-    connect,
-    ethersSigner,
-    ethersReadonlyProvider,
-    sameChain,
-    sameSigner,
-    initialMockChains,
-  } = useMetaMaskEthersSigner();
+  const { isConnected, chain } = useAccount();
+
+  const chainId = chain?.id;
 
   //////////////////////////////////////////////////////////////////////////////
   // FHEVM instance
   //////////////////////////////////////////////////////////////////////////////
+
+  // Create EIP-1193 provider from wagmi for FHEVM
+  const provider = useMemo(() => {
+    if (typeof window === "undefined") return undefined;
+
+    // Get the wallet provider from window.ethereum
+    return (window as any).ethereum;
+  }, []);
+
+  const initialMockChains = { 31337: "http://localhost:8545" };
 
   const {
     instance: fhevmInstance,
@@ -49,15 +50,10 @@ export const FHECounterDemo = () => {
   // - decrypting FHE handles
   //////////////////////////////////////////////////////////////////////////////
 
-  const fheCounter = useFHECounter({
+  const fheCounter = useFHECounterWagmi({
     instance: fhevmInstance,
-    fhevmDecryptionSignatureStorage, // is global, could be invoked directly in useFHECounter hook
-    eip1193Provider: provider,
-    chainId,
-    ethersSigner,
-    ethersReadonlyProvider,
-    sameChain,
-    sameSigner,
+    fhevmDecryptionSignatureStorage,
+    initialMockChains,
   });
 
   //////////////////////////////////////////////////////////////////////////////
@@ -81,40 +77,20 @@ export const FHECounterDemo = () => {
   if (!isConnected) {
     return (
       <div className="mx-auto">
-        <button className={buttonClass} disabled={isConnected} onClick={connect}>
-          <span className="text-4xl p-6">Connect to MetaMask</span>
-        </button>
+        <p className="text-center text-lg">Please connect your wallet using the connect button in the header.</p>
       </div>
     );
   }
 
-  if (fheCounter.isDeployed === false) {
-    return errorNotDeployed(chainId);
-  }
-
   return (
     <div className="grid w-full gap-4">
-      <div className="col-span-full mx-20 bg-black text-white">
-        <p className="font-semibold  text-3xl m-5">
-          FHEVM React Minimal Template - <span className="font-mono font-normal text-gray-400">FHECounter.sol</span>
-        </p>
-      </div>
       <div className="col-span-full mx-20 mt-4 px-5 pb-4 rounded-lg bg-white border-2 border-black">
         <p className={titleClass}>Chain Infos</p>
         {printProperty("ChainId", chainId)}
-        {printProperty(
-          "Metamask accounts",
-          accounts
-            ? accounts.length === 0
-              ? "No accounts"
-              : `{ length: ${accounts.length}, [${accounts[0]}, ...] }`
-            : "undefined",
-        )}
-        {printProperty("Signer", ethersSigner ? ethersSigner.address : "No signer")}
+        {printProperty("Signer", fheCounter.ethersSigner ? fheCounter.ethersSigner.address : "No signer")}
 
         <p className={titleClass}>Contract</p>
         {printProperty("FHECounter", fheCounter.contractAddress)}
-        {printProperty("isDeployed", fheCounter.isDeployed)}
       </div>
       <div className="col-span-full mx-20">
         <div className="grid grid-cols-2 gap-4">
