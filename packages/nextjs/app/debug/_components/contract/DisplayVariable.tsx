@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { InheritanceTooltip } from "./InheritanceTooltip";
 import { displayTxResult } from "./utilsDisplay";
 import { Abi, AbiFunction } from "abitype";
 import { Address } from "viem";
 import { useReadContract } from "wagmi";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { useFhevm } from "~~/fhevm/useFhevm";
+import { useFHEDecrypt } from "~~/hooks/fhevm/fhevm/useFHEDecrypt";
+import { useInMemoryStorage } from "~~/hooks/fhevm/useInMemoryStorage";
+import { useWagmiEthers } from "~~/hooks/fhevm/useWagmiEthers";
 import { useAnimationConfig } from "~~/hooks/scaffold-eth";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
 import { getParsedError, notification } from "~~/utils/scaffold-eth";
@@ -45,6 +49,29 @@ export const DisplayVariable = ({
 
   const { showAnimation } = useAnimationConfig(result);
 
+  // FHE decrypt support (only shown for hex string handles)
+  const { ethersSigner, chainId } = useWagmiEthers();
+  const { storage } = useInMemoryStorage();
+  const { instance } = useFhevm({
+    provider: typeof window !== "undefined" ? (window as any).ethereum : undefined,
+    chainId,
+  });
+
+  const resultIsHandle = typeof result === "string" && result.startsWith("0x") && result.length === 66;
+  const requests = useMemo(() => {
+    if (!resultIsHandle) return undefined;
+    return [{ handle: result as string, contractAddress: contractAddress as `0x${string}` }] as const;
+  }, [resultIsHandle, result, contractAddress]);
+
+  const { canDecrypt, decrypt, isDecrypting, message, results } = useFHEDecrypt({
+    instance,
+    ethersSigner,
+    fhevmDecryptionSignatureStorage: storage,
+    chainId,
+    requests,
+  });
+  const clearValue = resultIsHandle ? results[result as string] : undefined;
+
   useEffect(() => {
     refetch();
   }, [refetch, refreshDisplayVariables]);
@@ -78,6 +105,21 @@ export const DisplayVariable = ({
           >
             {displayTxResult(result)}
           </div>
+          {resultIsHandle && (
+            <div className="mt-2 flex items-center gap-2">
+              <button
+                className="btn btn-secondary btn-xs"
+                disabled={!canDecrypt || isDecrypting}
+                onClick={() => decrypt()}
+              >
+                {isDecrypting ? "Decrypting..." : "Decrypt"}
+              </button>
+              {typeof clearValue !== "undefined" && (
+                <span className="text-sm text-base-content/70">Clear: {String(clearValue)}</span>
+              )}
+              {message && <span className="text-xs text-base-content/60">{message}</span>}
+            </div>
+          )}
         </div>
       </div>
     </div>

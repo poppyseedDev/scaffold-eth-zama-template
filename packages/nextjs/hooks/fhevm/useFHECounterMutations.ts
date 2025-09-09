@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import { FhevmInstance } from "../../fhevm/fhevmTypes";
+import { useFHEEncryption } from "./fhevm/useFHEEncryption";
 import { FHECounterInfoType } from "./useFHECounterContract";
 import { ethers } from "ethers";
 
@@ -21,6 +22,13 @@ export const useFHECounterMutations = (params: {
   const canIncOrDec = useMemo(() => {
     return fheCounter.address && instance && ethersSigner && !isIncOrDec;
   }, [fheCounter.address, instance, ethersSigner, isIncOrDec]);
+
+  // Prepare encryption helper once
+  const { encryptUint32 } = useFHEEncryption({
+    instance,
+    ethersSigner,
+    contractAddress: fheCounter.address,
+  });
 
   const incOrDec = useCallback(
     (value: number) => {
@@ -47,11 +55,11 @@ export const useFHECounterMutations = (params: {
           thisFheCounterAddress !== fheCounter.address || thisChainId !== chainId || thisEthersSigner !== ethersSigner;
 
         try {
-          const userAddress = await thisEthersSigner.getAddress();
-          const input = instance.createEncryptedInput(thisFheCounterAddress, userAddress);
-          input.add32(valueAbs);
-
-          const enc = await input.encrypt();
+          const enc = await encryptUint32(valueAbs);
+          if (!enc) {
+            setMessage(`Encryption unavailable`);
+            return;
+          }
 
           if (isStale()) {
             setMessage(`Ignore ${opMsg}`);
@@ -88,7 +96,7 @@ export const useFHECounterMutations = (params: {
 
       run(op, valueAbs);
     },
-    [ethersSigner, fheCounter.address, fheCounter.abi, instance, chainId, refreshCountHandle],
+    [ethersSigner, fheCounter.address, fheCounter.abi, instance, chainId, refreshCountHandle, encryptUint32],
   );
 
   return { canIncOrDec, incOrDec, isIncOrDec, message, setMessage } as const;
