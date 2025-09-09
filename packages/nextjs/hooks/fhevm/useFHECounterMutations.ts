@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { FhevmInstance } from "../../fhevm/fhevmTypes";
 import { useFHEEncryption } from "./fhevm/useFHEEncryption";
 import { FHECounterInfoType } from "./useFHECounterContract";
@@ -10,94 +10,64 @@ export const useFHECounterMutations = (params: {
   fheCounter: FHECounterInfoType;
   instance: FhevmInstance | undefined;
   ethersSigner: ethers.Signer | undefined;
-  chainId: number | undefined;
   refreshCountHandle: () => void;
 }) => {
-  const { fheCounter, instance, ethersSigner, chainId, refreshCountHandle } = params;
+  const { fheCounter, instance, ethersSigner, refreshCountHandle } = params;
 
-  const [isIncOrDec, setIsIncOrDec] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
-  const isIncOrDecRef = useRef<boolean>(isIncOrDec);
 
-  const canIncOrDec = useMemo(() => {
-    return fheCounter.address && instance && ethersSigner && !isIncOrDec;
-  }, [fheCounter.address, instance, ethersSigner, isIncOrDec]);
+  const canUpdateCounter = useMemo(() => {
+    return fheCounter.address && instance && ethersSigner && !isProcessing;
+  }, [fheCounter.address, instance, ethersSigner, isProcessing]);
 
-  // Prepare encryption helper once
-  const { encryptUint32 } = useFHEEncryption({
+  const { encryptWith } = useFHEEncryption({
     instance,
     ethersSigner,
     contractAddress: fheCounter.address,
   });
 
-  const incOrDec = useCallback(
-    (value: number) => {
-      if (isIncOrDecRef.current) return;
-      if (!fheCounter.address || !instance || !ethersSigner || value === 0) return;
-
-      const thisChainId = chainId;
-      const thisFheCounterAddress = fheCounter.address;
-      const thisEthersSigner = ethersSigner;
-      const thisFheCounterContract = new ethers.Contract(thisFheCounterAddress, fheCounter.abi, thisEthersSigner);
+  const updateCounter = useCallback(
+    async (value: number) => {
+      if (isProcessing || !canUpdateCounter || value === 0) return;
 
       const op = value > 0 ? "increment" : "decrement";
-      const valueAbs = value > 0 ? value : -value;
+      const valueAbs = Math.abs(value);
       const opMsg = `${op}(${valueAbs})`;
 
-      isIncOrDecRef.current = true;
-      setIsIncOrDec(true);
-      setMessage(`Start ${opMsg}...`);
+      setIsProcessing(true);
+      setMessage(`Starting ${opMsg}...`);
 
-      const run = async (op: "increment" | "decrement", valueAbs: number) => {
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        const isStale = () =>
-          thisFheCounterAddress !== fheCounter.address || thisChainId !== chainId || thisEthersSigner !== ethersSigner;
-
-        try {
-          const enc = await encryptUint32(valueAbs);
-          if (!enc) {
-            setMessage(`Encryption unavailable`);
-            return;
-          }
-
-          if (isStale()) {
-            setMessage(`Ignore ${opMsg}`);
-            return;
-          }
-
-          setMessage(`Call ${opMsg}...`);
-
-          const tx: ethers.TransactionResponse =
-            op === "increment"
-              ? await thisFheCounterContract.increment(enc.handles[0], enc.inputProof)
-              : await thisFheCounterContract.decrement(enc.handles[0], enc.inputProof);
-
-          setMessage(`Wait for tx:${tx.hash}...`);
-
-          const receipt = await tx.wait();
-
-          setMessage(`Call ${opMsg} completed status=${receipt?.status}`);
-
-          if (isStale()) {
-            setMessage(`Ignore ${opMsg}`);
-            return;
-          }
-
-          refreshCountHandle();
-        } catch (error) {
-          console.error(`FHEVM ${opMsg} error:`, error);
-          setMessage(`${opMsg} Failed! Error: ${error instanceof Error ? error.message : String(error)}`);
-        } finally {
-          isIncOrDecRef.current = false;
-          setIsIncOrDec(false);
+      try {
+        // Encrypt the value using generic builder
+        const enc = await encryptWith(builder => builder.add32(valueAbs));
+        if (!enc) {
+          setMessage("Encryption failed");
+          return;
         }
-      };
 
-      run(op, valueAbs);
+        setMessage(`Calling ${opMsg}...`);
+
+        // Create contract instance and call function
+        const contract = new ethers.Contract(fheCounter.address!, fheCounter.abi, ethersSigner);
+        const tx = await (op === "increment"
+          ? contract.increment(enc.handles[0], enc.inputProof)
+          : contract.decrement(enc.handles[0], enc.inputProof));
+
+        setMessage(`Waiting for transaction...`);
+        const receipt = await tx.wait();
+
+        setMessage(`${opMsg} completed! Status: ${receipt?.status}`);
+        refreshCountHandle();
+      } catch (error) {
+        console.error(`FHEVM ${opMsg} error:`, error);
+        setMessage(`${opMsg} failed: ${error instanceof Error ? error.message : String(error)}`);
+      } finally {
+        setIsProcessing(false);
+      }
     },
-    [ethersSigner, fheCounter.address, fheCounter.abi, instance, chainId, refreshCountHandle, encryptUint32],
+    [isProcessing, canUpdateCounter, fheCounter.address, fheCounter.abi, ethersSigner, encryptWith, refreshCountHandle],
   );
 
-  return { canIncOrDec, incOrDec, isIncOrDec, message, setMessage } as const;
+  return { canUpdateCounter, updateCounter, isProcessing, message, setMessage } as const;
 };

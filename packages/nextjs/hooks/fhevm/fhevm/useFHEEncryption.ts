@@ -2,17 +2,12 @@
 
 import { useCallback, useMemo } from "react";
 import { FhevmInstance } from "../../../fhevm/fhevmTypes";
+import { RelayerEncryptedInput } from "@zama-fhe/relayer-sdk/web";
 import { ethers } from "ethers";
 
-type EncryptResult = {
+export type EncryptResult = {
   handles: string[];
   inputProof: string;
-};
-
-// Minimal builder interface to avoid tight coupling with SDK types
-type EncryptedInputBuilder = {
-  add32: (value: number) => void;
-  encrypt: () => Promise<EncryptResult>;
 };
 
 export const useFHEEncryption = (params: {
@@ -28,24 +23,23 @@ export const useFHEEncryption = (params: {
   );
 
   const encryptWith = useCallback(
-    async (buildFn: (builder: EncryptedInputBuilder) => void): Promise<EncryptResult | undefined> => {
+    async (buildFn: (builder: RelayerEncryptedInput) => void): Promise<EncryptResult | undefined> => {
       if (!instance || !ethersSigner || !contractAddress) return undefined;
 
       const userAddress = await ethersSigner.getAddress();
-      const input = instance.createEncryptedInput(contractAddress, userAddress) as unknown as EncryptedInputBuilder;
+      const input = instance.createEncryptedInput(contractAddress, userAddress) as RelayerEncryptedInput;
       buildFn(input);
       const enc = await input.encrypt();
-      return enc;
+      return {
+        handles: enc.handles.map(handle => Buffer.from(handle).toString("hex")),
+        inputProof: Buffer.from(enc.inputProof).toString("hex"),
+      };
     },
     [instance, ethersSigner, contractAddress],
   );
 
-  const encryptUint32 = useCallback(
-    async (value: number): Promise<EncryptResult | undefined> => {
-      return encryptWith(builder => builder.add32(value));
-    },
-    [encryptWith],
-  );
-
-  return { canEncrypt, encryptWith, encryptUint32 } as const;
+  return {
+    canEncrypt,
+    encryptWith,
+  } as const;
 };

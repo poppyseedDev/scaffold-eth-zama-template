@@ -62,15 +62,14 @@ export const useFHECounterWagmi = (parameters: {
 
   // Mutations
   const {
-    canIncOrDec,
-    incOrDec,
-    isIncOrDec,
+    canUpdateCounter,
+    updateCounter,
+    isProcessing,
     message: mutMsg,
   } = useFHECounterMutations({
     fheCounter,
     instance,
     ethersSigner,
-    chainId,
     refreshCountHandle,
   });
 
@@ -82,8 +81,8 @@ export const useFHECounterWagmi = (parameters: {
     contractAddress: fheCounter.address,
     canDecrypt,
     canGetCount,
-    canIncOrDec,
-    incOrDec,
+    canUpdateCounter,
+    updateCounter,
     decryptCountHandle,
     refreshCountHandle,
     isDecrypted,
@@ -92,7 +91,7 @@ export const useFHECounterWagmi = (parameters: {
     handle: countHandle,
     isDecrypting,
     isRefreshing,
-    isIncOrDec,
+    isProcessing,
     // Wagmi-specific values
     chainId,
     accounts,
