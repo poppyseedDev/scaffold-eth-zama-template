@@ -3,8 +3,11 @@
 import { useCallback, useMemo, useState } from "react";
 import { FhevmInstance } from "../../fhevm/fhevmTypes";
 import { useFHEEncryption } from "./fhevm/useFHEEncryption";
+import { buildParamsFromAbi, getEncryptionMethod } from "./fhevm/useFHEEncryption";
 import { FHECounterInfoType } from "./useFHECounterContract";
 import { ethers } from "ethers";
+
+// Reusable helpers now come from useFHEEncryption
 
 export const useFHECounterMutations = (params: {
   fheCounter: FHECounterInfoType;
@@ -39,8 +42,27 @@ export const useFHECounterMutations = (params: {
       setMessage(`Starting ${opMsg}...`);
 
       try {
-        // Encrypt the value using generic builder
-        const enc = await encryptWith(builder => builder.add32(valueAbs));
+        // Get the function ABI to determine the correct encryption method
+        const functionName = op === "increment" ? "increment" : "decrement";
+        const functionAbi = fheCounter.abi.find(item => item.type === "function" && item.name === functionName);
+        if (!functionAbi) {
+          setMessage(`Function ABI not found for ${functionName}`);
+          return;
+        }
+        if (!functionAbi.inputs || functionAbi.inputs.length === 0) {
+          setMessage(`No inputs found for ${functionName}`);
+          return;
+        }
+        const firstInput = functionAbi.inputs[0]!;
+        const encryptionMethod = getEncryptionMethod(firstInput.internalType);
+
+        setMessage(`Encrypting with ${encryptionMethod}...`);
+
+        // Encrypt the value using the appropriate method based on internalType
+        const enc = await encryptWith(builder => {
+          (builder as any)[encryptionMethod](valueAbs);
+        });
+
         if (!enc) {
           setMessage("Encryption failed");
           return;
@@ -50,9 +72,8 @@ export const useFHECounterMutations = (params: {
 
         // Create contract instance and call function
         const contract = new ethers.Contract(fheCounter.address!, fheCounter.abi, ethersSigner);
-        const tx = await (op === "increment"
-          ? contract.increment(enc.handles[0], enc.inputProof)
-          : contract.decrement(enc.handles[0], enc.inputProof));
+        const params = buildParamsFromAbi(enc, [...fheCounter.abi] as any[], functionName);
+        const tx = await (op === "increment" ? contract.increment(...params) : contract.decrement(...params));
 
         setMessage(`Waiting for transaction...`);
         const receipt = await tx.wait();
