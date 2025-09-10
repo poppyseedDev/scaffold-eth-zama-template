@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { FhevmInstance } from "../../../fhevm/fhevmTypes";
+import { FhevmInstance } from "../../fhevm/fhevmTypes";
 import { RelayerEncryptedInput } from "@zama-fhe/relayer-sdk/web";
 import { ethers } from "ethers";
 

@@ -8,11 +8,11 @@ import { Address } from "viem";
 import { useReadContract } from "wagmi";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useFhevm } from "~~/fhevm/useFhevm";
-import { useFHEDecrypt } from "~~/hooks/fhevm/fhevm/useFHEDecrypt";
-import { useInMemoryStorage } from "~~/hooks/fhevm/fhevm/useInMemoryStorage";
-import { useWagmiEthers } from "~~/hooks/fhevm/useWagmiEthers";
+import { useFHEDecrypt } from "~~/hooks/fhevm/useFHEDecrypt";
+import { useInMemoryStorage } from "~~/hooks/fhevm/useInMemoryStorage";
 import { useAnimationConfig } from "~~/hooks/scaffold-eth";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
+import { useWagmiEthers } from "~~/hooks/wagmi/useWagmiEthers";
 import { getParsedError, notification } from "~~/utils/scaffold-eth";
 
 type DisplayVariableProps = {

@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import { FhevmDecryptionSignature } from "../../../fhevm/FhevmDecryptionSignature";
-import { GenericStringStorage } from "../../../fhevm/GenericStringStorage";
-import { FhevmInstance } from "../../../fhevm/fhevmTypes";
+import { FhevmDecryptionSignature } from "../../fhevm/FhevmDecryptionSignature";
+import { GenericStringStorage } from "../../fhevm/GenericStringStorage";
+import { FhevmInstance } from "../../fhevm/fhevmTypes";
 import { ethers } from "ethers";
 
 export type FHEDecryptRequest = { handle: string; contractAddress: `0x${string}` };
@@ -43,6 +43,9 @@ export const useFHEDecrypt = (params: {
     const thisChainId = chainId;
     const thisSigner = ethersSigner;
     const thisRequests = requests;
+
+    // Capture the current requests key to avoid false "stale" detection on first run
+    lastReqKeyRef.current = requestsKey;
 
     isDecryptingRef.current = true;
     setIsDecrypting(true);
