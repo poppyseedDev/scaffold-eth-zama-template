@@ -2,8 +2,8 @@
 
 import { useMemo } from "react";
 import { useFhevm } from "../../../fhevm/useFhevm";
+import { useInMemoryStorage } from "../../../hooks/fhevm/fhevm/useInMemoryStorage";
 import { useFHECounterWagmi } from "../../../hooks/fhevm/useFHECounterWagmi";
-import { useInMemoryStorage } from "../../../hooks/fhevm/useInMemoryStorage";
 import { useAccount } from "wagmi";
 
 /*

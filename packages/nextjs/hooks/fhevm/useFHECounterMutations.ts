@@ -4,13 +4,15 @@ import { useCallback, useMemo, useState } from "react";
 import { FhevmInstance } from "../../fhevm/fhevmTypes";
 import { useFHEEncryption } from "./fhevm/useFHEEncryption";
 import { buildParamsFromAbi, getEncryptionMethod } from "./fhevm/useFHEEncryption";
-import { FHECounterInfoType } from "./useFHECounterContract";
 import { ethers } from "ethers";
+import type { Contract } from "~~/utils/scaffold-eth/contract";
+
+type FHECounterInfo = Contract<"FHECounter"> & { chainId?: number };
 
 // Reusable helpers now come from useFHEEncryption
 
 export const useFHECounterMutations = (params: {
-  fheCounter: FHECounterInfoType;
+  fheCounter: FHECounterInfo | undefined;
   instance: FhevmInstance | undefined;
   ethersSigner: ethers.Signer | undefined;
   refreshCountHandle: () => void;
@@ -21,13 +23,13 @@ export const useFHECounterMutations = (params: {
   const [message, setMessage] = useState<string>("");
 
   const canUpdateCounter = useMemo(() => {
-    return fheCounter.address && instance && ethersSigner && !isProcessing;
-  }, [fheCounter.address, instance, ethersSigner, isProcessing]);
+    return fheCounter?.address && instance && ethersSigner && !isProcessing;
+  }, [fheCounter?.address, instance, ethersSigner, isProcessing]);
 
   const { encryptWith } = useFHEEncryption({
     instance,
     ethersSigner,
-    contractAddress: fheCounter.address,
+    contractAddress: fheCounter?.address,
   });
 
   const updateCounter = useCallback(
@@ -44,7 +46,7 @@ export const useFHECounterMutations = (params: {
       try {
         // Get the function ABI to determine the correct encryption method
         const functionName = op === "increment" ? "increment" : "decrement";
-        const functionAbi = fheCounter.abi.find(item => item.type === "function" && item.name === functionName);
+        const functionAbi = fheCounter?.abi.find(item => item.type === "function" && item.name === functionName);
         if (!functionAbi) {
           setMessage(`Function ABI not found for ${functionName}`);
           return;
@@ -70,8 +72,14 @@ export const useFHECounterMutations = (params: {
 
         setMessage(`Calling ${opMsg}...`);
 
+        // Ensure contract data is present
+        if (!fheCounter?.address || !fheCounter?.abi || !ethersSigner) {
+          setMessage("Contract info or signer not available");
+          return;
+        }
+
         // Create contract instance and call function
-        const contract = new ethers.Contract(fheCounter.address!, fheCounter.abi, ethersSigner);
+        const contract = new ethers.Contract(fheCounter.address, fheCounter.abi, ethersSigner);
         const params = buildParamsFromAbi(enc, [...fheCounter.abi] as any[], functionName);
         const tx = await (op === "increment" ? contract.increment(...params) : contract.decrement(...params));
 
@@ -87,7 +95,15 @@ export const useFHECounterMutations = (params: {
         setIsProcessing(false);
       }
     },
-    [isProcessing, canUpdateCounter, fheCounter.address, fheCounter.abi, ethersSigner, encryptWith, refreshCountHandle],
+    [
+      isProcessing,
+      canUpdateCounter,
+      fheCounter?.address,
+      fheCounter?.abi,
+      ethersSigner,
+      encryptWith,
+      refreshCountHandle,
+    ],
   );
 
   return { canUpdateCounter, updateCounter, isProcessing, message, setMessage } as const;

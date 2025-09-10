@@ -9,7 +9,7 @@ import { useReadContract } from "wagmi";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useFhevm } from "~~/fhevm/useFhevm";
 import { useFHEDecrypt } from "~~/hooks/fhevm/fhevm/useFHEDecrypt";
-import { useInMemoryStorage } from "~~/hooks/fhevm/useInMemoryStorage";
+import { useInMemoryStorage } from "~~/hooks/fhevm/fhevm/useInMemoryStorage";
 import { useWagmiEthers } from "~~/hooks/fhevm/useWagmiEthers";
 import { useAnimationConfig } from "~~/hooks/scaffold-eth";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";

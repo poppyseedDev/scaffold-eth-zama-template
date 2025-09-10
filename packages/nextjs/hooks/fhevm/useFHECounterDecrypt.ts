@@ -4,8 +4,10 @@ import { useMemo } from "react";
 import { GenericStringStorage } from "../../fhevm/GenericStringStorage";
 import { FhevmInstance } from "../../fhevm/fhevmTypes";
 import { useFHEDecrypt } from "./fhevm/useFHEDecrypt";
-import { FHECounterInfoType } from "./useFHECounterContract";
 import { ethers } from "ethers";
+import type { Contract } from "~~/utils/scaffold-eth/contract";
+
+type FHECounterInfo = Contract<"FHECounter"> & { chainId?: number };
 
 export type ClearValueType = {
   handle: string;
@@ -13,7 +15,7 @@ export type ClearValueType = {
 };
 
 export const useFHECounterDecrypt = (params: {
-  fheCounter: FHECounterInfoType;
+  fheCounter: FHECounterInfo | undefined;
   instance: FhevmInstance | undefined;
   ethersSigner: ethers.Signer | undefined;
   fhevmDecryptionSignatureStorage: GenericStringStorage;
@@ -23,9 +25,9 @@ export const useFHECounterDecrypt = (params: {
   const { fheCounter, instance, ethersSigner, fhevmDecryptionSignatureStorage, chainId, countHandle } = params;
 
   const requests = useMemo(() => {
-    if (!fheCounter.address || !countHandle || countHandle === ethers.ZeroHash) return undefined;
-    return [{ handle: countHandle, contractAddress: fheCounter.address } as const];
-  }, [fheCounter.address, countHandle]);
+    if (!fheCounter?.address || !countHandle || countHandle === ethers.ZeroHash) return undefined;
+    return [{ handle: countHandle, contractAddress: fheCounter?.address } as const];
+  }, [fheCounter?.address, countHandle]);
 
   const { canDecrypt, decrypt, isDecrypting, message, results, setMessage } = useFHEDecrypt({
     instance,

@@ -3,11 +3,12 @@
 import { useMemo, useState } from "react";
 import { GenericStringStorage } from "../../fhevm/GenericStringStorage";
 import { FhevmInstance } from "../../fhevm/fhevmTypes";
-import { useFHECounterContractInfo } from "./useFHECounterContract";
+import { useDeployedContractInfo } from "../scaffold-eth";
 import { useFHECounterCount } from "./useFHECounterCount";
 import { useFHECounterDecrypt } from "./useFHECounterDecrypt";
 import { useFHECounterMutations } from "./useFHECounterMutations";
 import { useWagmiEthers } from "./useWagmiEthers";
+import type { AllowedChainIds } from "~~/utils/scaffold-eth/networks";
 
 export const useFHECounterWagmi = (parameters: {
   instance: FhevmInstance | undefined;
@@ -19,11 +20,12 @@ export const useFHECounterWagmi = (parameters: {
   // Wagmi + ethers interop
   const { chainId, accounts, isConnected, ethersReadonlyProvider, ethersSigner } = useWagmiEthers(initialMockChains);
 
+  // Narrow chainId to AllowedChainIds when present
+  const allowedChainId = typeof chainId === "number" ? (chainId as AllowedChainIds) : undefined;
+  const { data: fheCounter } = useDeployedContractInfo({ contractName: "FHECounter", chainId: allowedChainId });
+
   // Message bus shared by sub-hooks
   const [message, setMessage] = useState<string>("");
-
-  // Contract info
-  const { fheCounter } = useFHECounterContractInfo(chainId, setMessage);
 
   // Read count handle
   const {
@@ -32,7 +34,8 @@ export const useFHECounterWagmi = (parameters: {
     isRefreshing,
     message: readMsg,
     countHandle,
-  } = useFHECounterCount(fheCounter, ethersReadonlyProvider);
+  } = useFHECounterCount(fheCounter, ethersReadonlyProvider, chainId);
+  console.log("countHandle", countHandle);
 
   // Prefer sub-hook message if present
   useMemo(() => {
@@ -78,7 +81,7 @@ export const useFHECounterWagmi = (parameters: {
   }, [mutMsg]);
 
   return {
-    contractAddress: fheCounter.address,
+    contractAddress: fheCounter?.address,
     canDecrypt,
     canGetCount,
     canUpdateCounter,

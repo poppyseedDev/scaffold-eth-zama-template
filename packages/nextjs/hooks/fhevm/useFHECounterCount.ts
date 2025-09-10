@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FHECounterInfoType } from "./useFHECounterContract";
 import { ethers } from "ethers";
+import type { Contract } from "~~/utils/scaffold-eth/contract";
+
+type FHECounterInfo = Contract<"FHECounter"> & { chainId?: number };
 
 export type ClearValueType = {
   handle: string;
@@ -10,36 +12,41 @@ export type ClearValueType = {
 };
 
 export const useFHECounterCount = (
-  fheCounter: FHECounterInfoType,
+  fheCounter: FHECounterInfo | undefined,
   ethersReadonlyProvider: ethers.AbstractProvider | undefined,
+  chainId?: number,
 ) => {
   const [countHandle, setCountHandle] = useState<string | undefined>(undefined);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
 
   const isRefreshingRef = useRef<boolean>(isRefreshing);
-  const fheCounterRef = useRef<FHECounterInfoType | undefined>(undefined);
+  const fheCounterRef = useRef<FHECounterInfo | undefined>(undefined);
   const ropRef = useRef<typeof ethersReadonlyProvider>(ethersReadonlyProvider);
-  const addressRef = useRef<string | undefined>(fheCounter.address);
-  const chainIdRef = useRef<number | undefined>(fheCounter.chainId);
+  const addressRef = useRef<string | undefined>(fheCounter?.address);
+  const chainIdRef = useRef<number | undefined>(chainId);
 
   useEffect(() => {
     isRefreshingRef.current = isRefreshing;
   }, [isRefreshing]);
 
   useEffect(() => {
+    if (!fheCounter) return;
     fheCounterRef.current = fheCounter;
     addressRef.current = fheCounter.address;
-    chainIdRef.current = fheCounter.chainId;
   }, [fheCounter]);
+
+  useEffect(() => {
+    chainIdRef.current = chainId;
+  }, [chainId]);
 
   useEffect(() => {
     ropRef.current = ethersReadonlyProvider;
   }, [ethersReadonlyProvider]);
 
   const canGetCount = useMemo(() => {
-    return fheCounter.address && ethersReadonlyProvider && !isRefreshing;
-  }, [fheCounter.address, ethersReadonlyProvider, isRefreshing]);
+    return Boolean(fheCounter?.address && ethersReadonlyProvider && !isRefreshing);
+  }, [fheCounter?.address, ethersReadonlyProvider, isRefreshing]);
 
   const refreshCountHandle = useCallback(() => {
     if (isRefreshingRef.current) {
@@ -86,15 +93,17 @@ export const useFHECounterCount = (
       });
   }, []);
 
+  const hasProvider = Boolean(ethersReadonlyProvider);
+
   useEffect(() => {
-    if (!fheCounter.address || !ethersReadonlyProvider) return;
+    if (!fheCounter?.address || !hasProvider) return;
     const t = window.setTimeout(() => {
       refreshCountHandle();
     }, 500);
     return () => {
       window.clearTimeout(t);
     };
-  }, [fheCounter.address, !!ethersReadonlyProvider, fheCounter.chainId, refreshCountHandle]);
+  }, [fheCounter?.address, hasProvider, chainId, refreshCountHandle]);
 
   return { canGetCount, refreshCountHandle, isRefreshing, message, countHandle, setMessage } as const;
 };
