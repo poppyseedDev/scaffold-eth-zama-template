@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { useFhevm } from "@se-2/fhevm-sdk/react";
 import { useInMemoryStorage } from "../../../hooks/fhevm/fhevm/useInMemoryStorage";
 import { useFHECounterWagmi } from "../../../hooks/fhevm/useFHECounterWagmi";
+import { useFhevm } from "@se-2/fhevm-sdk/react";
 import { useAccount } from "wagmi";
 
 /*

@@ -3,12 +3,11 @@
 import { useEffect, useMemo } from "react";
 import { InheritanceTooltip } from "./InheritanceTooltip";
 import { displayTxResult } from "./utilsDisplay";
+import { useFHEDecrypt, useFhevm } from "@se-2/fhevm-sdk/react";
 import { Abi, AbiFunction } from "abitype";
 import { Address } from "viem";
 import { useReadContract } from "wagmi";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import { useFhevm } from "@se-2/fhevm-sdk/react";
-import { useFHEDecrypt } from "@se-2/fhevm-sdk/react";
 import { useInMemoryStorage } from "~~/hooks/fhevm/fhevm/useInMemoryStorage";
 import { useWagmiEthers } from "~~/hooks/fhevm/useWagmiEthers";
 import { useAnimationConfig } from "~~/hooks/scaffold-eth";

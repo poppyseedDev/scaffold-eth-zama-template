@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { GenericStringStorage, FhevmInstance } from "@se-2/fhevm-sdk";
 import { useDeployedContractInfo } from "../scaffold-eth";
 import { useFHECounterCount } from "./useFHECounterCount";
 import { useFHECounterDecrypt } from "./useFHECounterDecrypt";
 import { useFHECounterMutations } from "./useFHECounterMutations";
 import { useWagmiEthers } from "./useWagmiEthers";
+import { FhevmInstance, GenericStringStorage } from "@se-2/fhevm-sdk";
 import type { AllowedChainIds } from "~~/utils/scaffold-eth/networks";
 
 export const useFHECounterWagmi = (parameters: {
