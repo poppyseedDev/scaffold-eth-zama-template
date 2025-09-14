@@ -1,4 +1,6 @@
-export * from "@se-2/fhevm-sdk";
+import type { FhevmInstance, FhevmInstanceConfig } from "@se-2/fhevm-sdk";
+
+export type { FhevmInstance, FhevmInstanceConfig } from "@se-2/fhevm-sdk";
 
 export type FhevmInitSDKOptions = {
   tfheParams?: any;
