@@ -71,13 +71,13 @@ function assertFhevmStoredPublicKey(value: unknown): asserts value is FhevmStore
   if (!("publicKeyId" in value)) {
     throw new Error(`FhevmStoredPublicKey.publicKeyId does not exist`);
   }
-  if (typeof value.publicKeyId !== "string") {
+  if (typeof (value as any).publicKeyId !== "string") {
     throw new Error(`FhevmStoredPublicKey.publicKeyId must be a string`);
   }
   if (!("publicKey" in value)) {
     throw new Error(`FhevmStoredPublicKey.publicKey does not exist`);
   }
-  if (!(value.publicKey instanceof Uint8Array)) {
+  if (!((value as any).publicKey instanceof Uint8Array)) {
     throw new Error(`FhevmStoredPublicKey.publicKey must be a Uint8Array`);
   }
 }
@@ -92,13 +92,13 @@ function assertFhevmStoredPublicParams(value: unknown): asserts value is FhevmSt
   if (!("publicParamsId" in value)) {
     throw new Error(`FhevmStoredPublicParams.publicParamsId does not exist`);
   }
-  if (typeof value.publicParamsId !== "string") {
+  if (typeof (value as any).publicParamsId !== "string") {
     throw new Error(`FhevmStoredPublicParams.publicParamsId must be a string`);
   }
   if (!("publicParams" in value)) {
     throw new Error(`FhevmStoredPublicParams.publicParams does not exist`);
   }
-  if (!(value.publicParams instanceof Uint8Array)) {
+  if (!((value as any).publicParams instanceof Uint8Array)) {
     throw new Error(`FhevmStoredPublicParams.publicParams must be a Uint8Array`);
   }
 }
@@ -109,7 +109,7 @@ export async function publicKeyStorageGet(aclAddress: `0x${string}`): Promise<{
 }> {
   const db = await _getDB();
   if (!db) {
-    return { publicParams: null };
+    return { publicParams: null } as any;
   }
 
   let storedPublicKey: FhevmStoredPublicKey | null = null;
@@ -120,7 +120,7 @@ export async function publicKeyStorageGet(aclAddress: `0x${string}`): Promise<{
       storedPublicKey = pk.value;
     }
   } catch {
-    //
+    // ignore
   }
 
   let storedPublicParams: FhevmStoredPublicParams | null = null;
@@ -131,7 +131,7 @@ export async function publicKeyStorageGet(aclAddress: `0x${string}`): Promise<{
       storedPublicParams = pp.value;
     }
   } catch {
-    //
+    // ignore
   }
 
   const publicKeyData = storedPublicKey?.publicKey;
@@ -154,7 +154,7 @@ export async function publicKeyStorageGet(aclAddress: `0x${string}`): Promise<{
   return {
     ...(publicKey !== undefined && { publicKey }),
     publicParams,
-  };
+  } as any;
 }
 
 export async function publicKeyStorageSet(
@@ -178,3 +178,4 @@ export async function publicKeyStorageSet(
     await db.put("paramsStore", { acl: aclAddress, value: publicParams });
   }
 }
+

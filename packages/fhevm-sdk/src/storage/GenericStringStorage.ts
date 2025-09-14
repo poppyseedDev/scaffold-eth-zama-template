@@ -8,7 +8,7 @@ export class GenericStringInMemoryStorage implements GenericStringStorage {
   #store = new Map<string, string>();
 
   getItem(key: string): string | Promise<string | null> | null {
-    return this.#store.has(key) ? this.#store.get(key)! : null;
+    return this.#store.has(key) ? (this.#store.get(key) as string) : null;
   }
   setItem(key: string, value: string): void | Promise<void> {
     this.#store.set(key, value);
@@ -17,3 +17,4 @@ export class GenericStringInMemoryStorage implements GenericStringStorage {
     this.#store.delete(key);
   }
 }
+

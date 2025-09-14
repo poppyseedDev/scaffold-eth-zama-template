@@ -21,3 +21,4 @@ export type FhevmRelayerSDKType = {
 export type FhevmWindowType = {
   relayerSDK: FhevmRelayerSDKType;
 };
+

@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { GenericStringStorage } from "../../fhevm/GenericStringStorage";
-import { FhevmInstance } from "../../fhevm/fhevmTypes";
-import { useFHEDecrypt } from "./fhevm/useFHEDecrypt";
+import { FhevmInstance, GenericStringStorage } from "@se-2/fhevm-sdk";
+import { useFHEDecrypt } from "@se-2/fhevm-sdk/react";
 import { ethers } from "ethers";
 import type { Contract } from "~~/utils/scaffold-eth/contract";
 
