@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { GenericStringStorage } from "../../fhevm/GenericStringStorage";
-import { FhevmInstance } from "../../fhevm/fhevmTypes";
+import { GenericStringStorage, FhevmInstance } from "@se-2/fhevm-sdk";
 import { useDeployedContractInfo } from "../scaffold-eth";
 import { useFHECounterCount } from "./useFHECounterCount";
 import { useFHECounterDecrypt } from "./useFHECounterDecrypt";

@@ -1,4 +1,4 @@
-export * from "@se-2/fhevm-sdk";
+import type { FhevmInstance, FhevmInstanceConfig } from "../fhevmTypes";
 
 export type FhevmInitSDKOptions = {
   tfheParams?: any;
@@ -21,3 +21,4 @@ export type FhevmRelayerSDKType = {
 export type FhevmWindowType = {
   relayerSDK: FhevmRelayerSDKType;
 };
+

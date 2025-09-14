@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { FhevmInstance } from "@se-2/fhevm-sdk";
-import { createFhevmInstance } from "@se-2/fhevm-sdk";
+import type { FhevmInstance } from "../fhevmTypes.js";
+import { createFhevmInstance } from "../internal/fhevm.js";
 import { ethers } from "ethers";
 
 function _assert(condition: boolean, message?: string): asserts condition {
   if (!condition) {
     const m = message ? `Assertion failed: ${message}` : `Assertion failed.`;
-    console.error(m);
     throw new Error(m);
   }
 }
@@ -34,12 +33,10 @@ export function useFhevm(parameters: {
   const _abortControllerRef = useRef<AbortController | null>(null);
   const _providerRef = useRef<string | ethers.Eip1193Provider | undefined>(provider);
   const _chainIdRef = useRef<number | undefined>(chainId);
-  const _mockChainsRef = useRef<Record<number, string> | undefined>(initialMockChains);
+  const _mockChainsRef = useRef<Record<number, string> | undefined>(initialMockChains as any);
 
   const refresh = useCallback(() => {
-    // Provider or chainId has changed. Abort immediately
     if (_abortControllerRef.current) {
-      // Make sure _providerRef.current + _chainIdRef.current are undefined during abort
       _providerRef.current = undefined;
       _chainIdRef.current = undefined;
 
@@ -50,20 +47,15 @@ export function useFhevm(parameters: {
     _providerRef.current = provider;
     _chainIdRef.current = chainId;
 
-    // Nullify instance immediately
     _setInstance(undefined);
     _setError(undefined);
     _setStatus("idle");
 
     if (provider !== undefined) {
-      // Force call main useEffect
       _setProviderChanged(prev => prev + 1);
     }
-
-    // Do not modify the running flag.
   }, [provider, chainId]);
 
-  // Merge in main useEffect!!!
   useEffect(() => {
     refresh();
   }, [refresh]);
@@ -72,18 +64,12 @@ export function useFhevm(parameters: {
     _setIsRunning(enabled);
   }, [enabled]);
 
-  // Main useEffect
   useEffect(() => {
-    // is _providerRef.current valid here ?
-    // even if the first useEffect is rendered in the same render-cycle ?
     if (_isRunning === false) {
-      // cancelled
-      console.log("cancelled");
       if (_abortControllerRef.current) {
         _abortControllerRef.current.abort();
         _abortControllerRef.current = null;
       }
-      // May already be null if provider was changed in the previous render-cycle
       _setInstance(undefined);
       _setError(undefined);
       _setStatus("idle");
@@ -92,8 +78,6 @@ export function useFhevm(parameters: {
 
     if (_isRunning === true) {
       if (_providerRef.current === undefined) {
-        // instance should be undefined
-        // this code below should be unecessary
         _setInstance(undefined);
         _setError(undefined);
         _setStatus("idle");
@@ -106,29 +90,21 @@ export function useFhevm(parameters: {
 
       _assert(!_abortControllerRef.current.signal.aborted, "!controllerRef.current.signal.aborted");
 
-      // Keep old instance
-      // Was set to undefined if provider changed
       _setStatus("loading");
       _setError(undefined);
 
       const thisSignal = _abortControllerRef.current.signal;
       const thisProvider = _providerRef.current;
-      // Can be undefined, if so, call eth_chainId
-      const thisRpcUrlsByChainId = _mockChainsRef.current;
+      const thisRpcUrlsByChainId = _mockChainsRef.current as any;
 
       createFhevmInstance({
         signal: thisSignal,
-        provider: thisProvider,
-        mockChains: thisRpcUrlsByChainId,
+        provider: thisProvider as any,
+        mockChains: thisRpcUrlsByChainId as any,
         onStatusChange: s => console.log(`[useFhevm] createFhevmInstance status changed: ${s}`),
       })
         .then(i => {
-          console.log(`[useFhevm] createFhevmInstance created!`);
-          //console.log(`completed (runId=${thisRunId})...`);
           if (thisSignal.aborted) return;
-
-          // is there a edge case where the assert below would fail ?
-          // it's not possible to have a _providerRef modified without a prior abort
           _assert(thisProvider === _providerRef.current, "thisProvider === _providerRef.current");
 
           _setInstance(i);
@@ -136,14 +112,12 @@ export function useFhevm(parameters: {
           _setStatus("ready");
         })
         .catch(e => {
-          console.log(`Error Was thrown !!! error... ` + e.name);
           if (thisSignal.aborted) return;
 
-          // it's not possible to have a _providerRef modified without a prior abort
           _assert(thisProvider === _providerRef.current, "thisProvider === _providerRef.current");
 
           _setInstance(undefined);
-          _setError(e);
+          _setError(e as any);
           _setStatus("error");
         });
     }
@@ -151,3 +125,4 @@ export function useFhevm(parameters: {
 
   return { instance, refresh, error, status };
 }
+

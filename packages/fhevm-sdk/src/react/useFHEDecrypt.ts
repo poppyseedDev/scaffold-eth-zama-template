@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import { FhevmDecryptionSignature, FhevmInstance } from "@se-2/fhevm-sdk";
-import { GenericStringStorage } from "@se-2/fhevm-sdk";
+import { FhevmDecryptionSignature } from "../FhevmDecryptionSignature.js";
+import { GenericStringStorage } from "../storage/GenericStringStorage.js";
+import { FhevmInstance } from "../fhevmTypes.js";
 import { ethers } from "ethers";
 
 export type FHEDecryptRequest = { handle: string; contractAddress: `0x${string}` };
@@ -25,9 +26,7 @@ export const useFHEDecrypt = (params: {
 
   const requestsKey = useMemo(() => {
     if (!requests || requests.length === 0) return "";
-    const sorted = [...requests].sort((a, b) =>
-      (a.handle + a.contractAddress).localeCompare(b.handle + b.contractAddress),
-    );
+    const sorted = [...requests].sort((a, b) => (a.handle + a.contractAddress).localeCompare(b.handle + b.contractAddress));
     return JSON.stringify(sorted);
   }, [requests]);
 
@@ -48,8 +47,7 @@ export const useFHEDecrypt = (params: {
     setMessage("Start decrypt");
 
     const run = async () => {
-      const isStale = () =>
-        thisChainId !== chainId || thisSigner !== ethersSigner || requestsKey !== lastReqKeyRef.current;
+      const isStale = () => thisChainId !== chainId || thisSigner !== ethersSigner || requestsKey !== lastReqKeyRef.current;
 
       try {
         const uniqueAddresses = Array.from(new Set(thisRequests.map(r => r.contractAddress)));
@@ -73,7 +71,7 @@ export const useFHEDecrypt = (params: {
         setMessage("Call FHEVM userDecrypt...");
 
         const mutableReqs = thisRequests.map(r => ({ handle: r.handle, contractAddress: r.contractAddress }));
-        const res = await instance.userDecrypt(
+        const res = await (instance as any).userDecrypt(
           mutableReqs,
           sig.privateKey,
           sig.publicKey,
@@ -91,7 +89,7 @@ export const useFHEDecrypt = (params: {
           return;
         }
 
-        setResults(res);
+        setResults(res as any);
       } finally {
         isDecryptingRef.current = false;
         setIsDecrypting(false);
@@ -104,3 +102,4 @@ export const useFHEDecrypt = (params: {
 
   return { canDecrypt, decrypt, isDecrypting, message, results, setMessage } as const;
 };
+

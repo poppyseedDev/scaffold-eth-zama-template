@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { FhevmInstance } from "../../fhevm/fhevmTypes";
-import { useFHEEncryption } from "./fhevm/useFHEEncryption";
-import { buildParamsFromAbi, getEncryptionMethod } from "./fhevm/useFHEEncryption";
+import { FhevmInstance } from "@se-2/fhevm-sdk";
+import { useFHEEncryption, buildParamsFromAbi, getEncryptionMethod } from "@se-2/fhevm-sdk/react";
 import { ethers } from "ethers";
 import type { Contract } from "~~/utils/scaffold-eth/contract";
 

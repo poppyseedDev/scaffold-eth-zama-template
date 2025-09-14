@@ -1,4 +1,5 @@
-export * from "@se-2/fhevm-sdk";
+import { SDK_CDN_URL } from "./constants";
+import { FhevmRelayerSDKType, FhevmWindowType } from "./fhevmTypes";
 
 type TraceType = (message?: unknown, ...optionalParams: unknown[]) => void;
 
@@ -17,16 +18,12 @@ export class RelayerSDKLoader {
   }
 
   public load(): Promise<void> {
-    console.log("[RelayerSDKLoader] load...");
-    // Ensure this only runs in the browser
     if (typeof window === "undefined") {
-      console.log("[RelayerSDKLoader] window === undefined");
       return Promise.reject(new Error("RelayerSDKLoader: can only be used in the browser."));
     }
 
     if ("relayerSDK" in window) {
       if (!isFhevmRelayerSDKType(window.relayerSDK, this._trace)) {
-        console.log("[RelayerSDKLoader] window.relayerSDK === undefined");
         throw new Error("RelayerSDKLoader: Unable to load FHEVM Relayer SDK");
       }
       return Promise.resolve();
@@ -49,7 +46,6 @@ export class RelayerSDKLoader {
 
       script.onload = () => {
         if (!isFhevmWindowType(window, this._trace)) {
-          console.log("[RelayerSDKLoader] script onload FAILED...");
           reject(
             new Error(
               `RelayerSDKLoader: Relayer SDK script has been successfully loaded from ${SDK_CDN_URL}, however, the window.relayerSDK object is invalid.`,
@@ -60,13 +56,10 @@ export class RelayerSDKLoader {
       };
 
       script.onerror = () => {
-        console.log("[RelayerSDKLoader] script onerror... ");
         reject(new Error(`RelayerSDKLoader: Failed to load Relayer SDK from ${SDK_CDN_URL}`));
       };
 
-      console.log("[RelayerSDKLoader] add script to DOM...");
       document.head.appendChild(script);
-      console.log("[RelayerSDKLoader] script added!");
     });
   }
 }
@@ -122,13 +115,13 @@ export function isFhevmWindowType(win: unknown, trace?: TraceType): win is Fhevm
     trace?.("RelayerSDKLoader: window does not contain 'relayerSDK' property");
     return false;
   }
-  return isFhevmRelayerSDKType(win.relayerSDK);
+  return isFhevmRelayerSDKType((win as any).relayerSDK);
 }
 
 function objHasProperty<
   T extends object,
   K extends PropertyKey,
-  V extends string, // "string", "number", etc.
+  V extends string,
 >(
   obj: T,
   propertyName: K,
@@ -172,3 +165,4 @@ function objHasProperty<
 
   return true;
 }
+
