@@ -31,7 +31,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -p tsconfig.json --watch",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "idb": "^8.0.3"
@@ -49,6 +51,8 @@
     "@zama-fhe/relayer-sdk": "0.1.2",
     "ethers": "^6.13.7",
     "react": "~19.0.0",
-    "typescript": "~5.8.2"
+    "typescript": "~5.8.2",
+    "vitest": "~2.1.8",
+    "fake-indexeddb": "~6.0.0"
   }
 }
