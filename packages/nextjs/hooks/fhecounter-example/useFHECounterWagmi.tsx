@@ -3,20 +3,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDeployedContractInfo } from "../scaffold-eth";
 import { useWagmiEthers } from "../wagmi/useWagmiEthers";
-import { GenericStringStorage } from "@se-2/fhevm-sdk";
 import { FhevmInstance } from "@se-2/fhevm-sdk";
-import { useFHEDecrypt } from "@se-2/fhevm-sdk/react";
-import { buildParamsFromAbi, getEncryptionMethod, useFHEEncryption } from "@se-2/fhevm-sdk/react";
+import {
+  buildParamsFromAbi,
+  getEncryptionMethod,
+  useFHEDecrypt,
+  useFHEEncryption,
+  useInMemoryStorage,
+} from "@se-2/fhevm-sdk/react";
 import { ethers } from "ethers";
 import type { Contract } from "~~/utils/scaffold-eth/contract";
 import type { AllowedChainIds } from "~~/utils/scaffold-eth/networks";
 
 export const useFHECounterWagmi = (parameters: {
   instance: FhevmInstance | undefined;
-  fhevmDecryptionSignatureStorage: GenericStringStorage;
   initialMockChains?: Readonly<Record<number, string>>;
 }) => {
-  const { instance, fhevmDecryptionSignatureStorage, initialMockChains } = parameters;
+  const { instance, initialMockChains } = parameters;
+  const { storage: fhevmDecryptionSignatureStorage } = useInMemoryStorage();
 
   // Wagmi + ethers interop
   const { chainId, accounts, isConnected, ethersReadonlyProvider, ethersSigner } = useWagmiEthers(initialMockChains);

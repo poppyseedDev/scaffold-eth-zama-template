@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { RainbowKitProvider, darkTheme, lightTheme } from "@rainbow-me/rainbowkit";
-import { InMemoryStorageProvider } from "@se-2/fhevm-sdk";
+import { InMemoryStorageProvider } from "@se-2/fhevm-sdk/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 import { useTheme } from "next-themes";

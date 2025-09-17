@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import { useFhevm } from "@se-2/fhevm-sdk";
-import { useInMemoryStorage } from "@se-2/fhevm-sdk";
 import { useAccount } from "wagmi";
 import { useFHECounterWagmi } from "~~/hooks/fhecounter-example/useFHECounterWagmi";
 
@@ -13,7 +12,6 @@ import { useFHECounterWagmi } from "~~/hooks/fhecounter-example/useFHECounterWag
  *  - "Decrement" button: allows you to decrement the FHECounter count handle using FHE operations.
  */
 export const FHECounterDemo = () => {
-  const { storage: fhevmDecryptionSignatureStorage } = useInMemoryStorage();
   const { isConnected, chain } = useAccount();
 
   const chainId = chain?.id;
@@ -52,7 +50,6 @@ export const FHECounterDemo = () => {
 
   const fheCounter = useFHECounterWagmi({
     instance: fhevmInstance,
-    fhevmDecryptionSignatureStorage,
     initialMockChains,
   });
 
