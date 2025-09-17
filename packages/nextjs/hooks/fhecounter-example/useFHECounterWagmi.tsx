@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { GenericStringStorage } from "../../fhevm/GenericStringStorage";
-import { FhevmInstance } from "../../fhevm/fhevmTypes";
 import { useFHEDecrypt } from "../fhevm/useFHEDecrypt";
 import { buildParamsFromAbi, getEncryptionMethod, useFHEEncryption } from "../fhevm/useFHEEncryption";
 import { useDeployedContractInfo } from "../scaffold-eth";
 import { useWagmiEthers } from "../wagmi/useWagmiEthers";
 import { ethers } from "ethers";
+import { GenericStringStorage } from "~~/fhevm/GenericStringStorage";
+import { FhevmInstance } from "~~/fhevm/fhevmTypes";
 import type { Contract } from "~~/utils/scaffold-eth/contract";
 import type { AllowedChainIds } from "~~/utils/scaffold-eth/networks";
 

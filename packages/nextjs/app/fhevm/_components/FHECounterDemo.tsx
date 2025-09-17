@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import { useFhevm } from "../../../fhevm/useFhevm";
-import { useFHECounterWagmi } from "../../../hooks/fhevm-example/useFHECounterWagmi";
-import { useInMemoryStorage } from "../../../hooks/fhevm/useInMemoryStorage";
 import { useAccount } from "wagmi";
+import { useFhevm } from "~~/fhevm/useFhevm";
+import { useFHECounterWagmi } from "~~/hooks/fhecounter-example/useFHECounterWagmi";
+import { useInMemoryStorage } from "~~/hooks/fhevm/useInMemoryStorage";
 
 /*
  * Main FHECounter React component with 3 buttons

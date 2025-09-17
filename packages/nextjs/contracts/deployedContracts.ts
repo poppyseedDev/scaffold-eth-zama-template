@@ -10,6 +10,11 @@ const deployedContracts = {
       address: "0x17319CDEf9593d05Ce0F47Fe3C34977C97C05cD1",
       abi: [
         {
+          inputs: [],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
           inputs: [
             {
               internalType: "externalEuint32",
@@ -25,6 +30,45 @@ const deployedContracts = {
           name: "decrement",
           outputs: [],
           stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "encryptedAddress",
+          outputs: [
+            {
+              internalType: "eaddress",
+              name: "",
+              type: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "encryptedBool",
+          outputs: [
+            {
+              internalType: "ebool",
+              name: "",
+              type: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "encryptedUint32",
+          outputs: [
+            {
+              internalType: "euint32",
+              name: "",
+              type: "bytes32",
+            },
+          ],
+          stateMutability: "view",
           type: "function",
         },
         {
@@ -54,6 +98,34 @@ const deployedContracts = {
             },
           ],
           name: "increment",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "externalEbool",
+              name: "inputEbool",
+              type: "bytes32",
+            },
+            {
+              internalType: "externalEuint32",
+              name: "inputEuint32",
+              type: "bytes32",
+            },
+            {
+              internalType: "externalEaddress",
+              name: "inputEaddress",
+              type: "bytes32",
+            },
+            {
+              internalType: "bytes",
+              name: "inputProof",
+              type: "bytes",
+            },
+          ],
+          name: "initialize",
           outputs: [],
           stateMutability: "nonpayable",
           type: "function",

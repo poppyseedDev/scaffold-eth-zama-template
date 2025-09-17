@@ -21,22 +21,58 @@ import type {
 
 export interface FHECounterInterface extends Interface {
   getFunction(
-    nameOrSignature: "decrement" | "getCount" | "increment"
+    nameOrSignature:
+      | "decrement"
+      | "encryptedAddress"
+      | "encryptedBool"
+      | "encryptedUint32"
+      | "getCount"
+      | "increment"
+      | "initialize"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "decrement",
     values: [BytesLike, BytesLike]
   ): string;
+  encodeFunctionData(
+    functionFragment: "encryptedAddress",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "encryptedBool",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "encryptedUint32",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "getCount", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "increment",
     values: [BytesLike, BytesLike]
   ): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [BytesLike, BytesLike, BytesLike, BytesLike]
+  ): string;
 
   decodeFunctionResult(functionFragment: "decrement", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "encryptedAddress",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "encryptedBool",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "encryptedUint32",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getCount", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "increment", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
 }
 
 export interface FHECounter extends BaseContract {
@@ -88,10 +124,27 @@ export interface FHECounter extends BaseContract {
     "nonpayable"
   >;
 
+  encryptedAddress: TypedContractMethod<[], [string], "view">;
+
+  encryptedBool: TypedContractMethod<[], [string], "view">;
+
+  encryptedUint32: TypedContractMethod<[], [string], "view">;
+
   getCount: TypedContractMethod<[], [string], "view">;
 
   increment: TypedContractMethod<
     [inputEuint32: BytesLike, inputProof: BytesLike],
+    [void],
+    "nonpayable"
+  >;
+
+  initialize: TypedContractMethod<
+    [
+      inputEbool: BytesLike,
+      inputEuint32: BytesLike,
+      inputEaddress: BytesLike,
+      inputProof: BytesLike
+    ],
     [void],
     "nonpayable"
   >;
@@ -108,12 +161,33 @@ export interface FHECounter extends BaseContract {
     "nonpayable"
   >;
   getFunction(
+    nameOrSignature: "encryptedAddress"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "encryptedBool"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "encryptedUint32"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
     nameOrSignature: "getCount"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "increment"
   ): TypedContractMethod<
     [inputEuint32: BytesLike, inputProof: BytesLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "initialize"
+  ): TypedContractMethod<
+    [
+      inputEbool: BytesLike,
+      inputEuint32: BytesLike,
+      inputEaddress: BytesLike,
+      inputProof: BytesLike
+    ],
     [void],
     "nonpayable"
   >;
