@@ -3,15 +3,16 @@
 import { useEffect, useMemo } from "react";
 import { InheritanceTooltip } from "./InheritanceTooltip";
 import { displayTxResult } from "./utilsDisplay";
-import { useFHEDecrypt, useFhevm } from "@se-2/fhevm-sdk/react";
+import { useFhevm } from "@se-2/fhevm-sdk";
+import { useFHEDecrypt } from "@se-2/fhevm-sdk";
+import { useInMemoryStorage } from "@se-2/fhevm-sdk";
 import { Abi, AbiFunction } from "abitype";
 import { Address } from "viem";
 import { useReadContract } from "wagmi";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import { useInMemoryStorage } from "~~/hooks/fhevm/fhevm/useInMemoryStorage";
-import { useWagmiEthers } from "~~/hooks/fhevm/useWagmiEthers";
 import { useAnimationConfig } from "~~/hooks/scaffold-eth";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
+import { useWagmiEthers } from "~~/hooks/wagmi/useWagmiEthers";
 import { getParsedError, notification } from "~~/utils/scaffold-eth";
 
 type DisplayVariableProps = {
