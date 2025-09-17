@@ -26,7 +26,9 @@ export const useFHEDecrypt = (params: {
 
   const requestsKey = useMemo(() => {
     if (!requests || requests.length === 0) return "";
-    const sorted = [...requests].sort((a, b) => (a.handle + a.contractAddress).localeCompare(b.handle + b.contractAddress));
+    const sorted = [...requests].sort((a, b) =>
+      (a.handle + a.contractAddress).localeCompare(b.handle + b.contractAddress),
+    );
     return JSON.stringify(sorted);
   }, [requests]);
 
@@ -42,12 +44,16 @@ export const useFHEDecrypt = (params: {
     const thisSigner = ethersSigner;
     const thisRequests = requests;
 
+    // Capture the current requests key to avoid false "stale" detection on first run
+    lastReqKeyRef.current = requestsKey;
+
     isDecryptingRef.current = true;
     setIsDecrypting(true);
     setMessage("Start decrypt");
 
     const run = async () => {
-      const isStale = () => thisChainId !== chainId || thisSigner !== ethersSigner || requestsKey !== lastReqKeyRef.current;
+      const isStale = () =>
+        thisChainId !== chainId || thisSigner !== ethersSigner || requestsKey !== lastReqKeyRef.current;
 
       try {
         const uniqueAddresses = Array.from(new Set(thisRequests.map(r => r.contractAddress)));
@@ -71,7 +77,7 @@ export const useFHEDecrypt = (params: {
         setMessage("Call FHEVM userDecrypt...");
 
         const mutableReqs = thisRequests.map(r => ({ handle: r.handle, contractAddress: r.contractAddress }));
-        const res = await (instance as any).userDecrypt(
+        const res = await instance.userDecrypt(
           mutableReqs,
           sig.privateKey,
           sig.publicKey,
@@ -89,7 +95,7 @@ export const useFHEDecrypt = (params: {
           return;
         }
 
-        setResults(res as any);
+        setResults(res);
       } finally {
         isDecryptingRef.current = false;
         setIsDecrypting(false);
@@ -102,4 +108,3 @@ export const useFHEDecrypt = (params: {
 
   return { canDecrypt, decrypt, isDecrypting, message, results, setMessage } as const;
 };
-
