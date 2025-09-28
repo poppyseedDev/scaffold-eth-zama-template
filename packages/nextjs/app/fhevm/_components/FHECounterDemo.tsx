@@ -176,10 +176,8 @@ export const FHECounterDemo = () => {
         <div className={sectionClass}>
           <h3 className={titleClass}>📊 Counter Status</h3>
           <div className="space-y-3">
-            {printProperty("Refreshing", fheCounter.isRefreshing)}
             {printProperty("Decrypting", fheCounter.isDecrypting)}
             {printProperty("Processing", fheCounter.isProcessing)}
-            {printProperty("Can Get Count", fheCounter.canGetCount)}
             {printProperty("Can Decrypt", fheCounter.canDecrypt)}
             {printProperty("Can Modify", fheCounter.canUpdateCounter)}
           </div>
