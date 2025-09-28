@@ -1,16 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useFHEDecrypt } from "../fhevm/useFHEDecrypt";
 import { buildParamsFromAbi, getEncryptionMethod, useFHEEncryption } from "../fhevm/useFHEEncryption";
-import { useDeployedContractInfo } from "../scaffold-eth";
+import { useDeployedContractInfo, useScaffoldReadContract, useScaffoldWriteContract } from "../scaffold-eth";
 import { useWagmiEthers } from "../wagmi/useWagmiEthers";
-import { ethers } from "ethers";
 import { GenericStringStorage } from "~~/fhevm/GenericStringStorage";
 import { FhevmInstance } from "~~/fhevm/fhevmTypes";
-import type { Contract } from "~~/utils/scaffold-eth/contract";
 import type { AllowedChainIds } from "~~/utils/scaffold-eth/networks";
 
+/**
+ * useFHECounterWagmi - Minimal FHE Counter hook for Wagmi devs
+ *
+ * What it does:
+ * - Reads the current encrypted counter handle via useScaffoldReadContract
+ * - Decrypts the handle on-demand with useFHEDecrypt
+ * - Encrypts inputs and writes increment/decrement with useScaffoldWriteContract
+ *
+ * Pass your FHEVM instance and a simple key-value storage for the decryption signature.
+ * That's it. Everything else is handled for you.
+ */
 export const useFHECounterWagmi = (parameters: {
   instance: FhevmInstance | undefined;
   fhevmDecryptionSignatureStorage: GenericStringStorage;
@@ -18,93 +27,30 @@ export const useFHECounterWagmi = (parameters: {
 }) => {
   const { instance, fhevmDecryptionSignatureStorage, initialMockChains } = parameters;
 
-  // Wagmi + ethers interop
-  const { chainId, accounts, isConnected, ethersReadonlyProvider, ethersSigner } = useWagmiEthers(initialMockChains);
-
-  // Narrow chainId to AllowedChainIds when present
+  // Basic Wagmi ↔ Ethers interop (signer + chainId)
+  const { chainId, isConnected, ethersSigner } = useWagmiEthers(initialMockChains);
   const allowedChainId = typeof chainId === "number" ? (chainId as AllowedChainIds) : undefined;
+
+  // Contract info (address + abi) for FHECounter
   const { data: fheCounter } = useDeployedContractInfo({ contractName: "FHECounter", chainId: allowedChainId });
 
-  // Message bus shared by sub-hooks
-  const [message, setMessage] = useState<string>("");
+  // 1) Read: encrypted handle from getCount()
+  const { data: handle } = useScaffoldReadContract({
+    contractName: "FHECounter",
+    functionName: "getCount",
+    chainId: allowedChainId,
+    watch: true, // auto-refresh on new blocks
+  });
 
-  // Local types/state/refs
-  type FHECounterInfo = Contract<"FHECounter"> & { chainId?: number };
-  const fheCounterRef = useRef<FHECounterInfo | undefined>(undefined);
-  const providerRef = useRef<typeof ethersReadonlyProvider>(ethersReadonlyProvider);
-  const addressRef = useRef<string | undefined>(fheCounter?.address);
-  const chainIdRef = useRef<number | undefined>(chainId);
-  const lastRefreshRef = useRef<number>(0);
-  const MIN_REFRESH_MS = 100; // limit refresh to once every 0.1s
-
-  const [countHandle, setCountHandle] = useState<string | undefined>(undefined);
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-
-  // keep refs in sync
-  useEffect(() => {
-    providerRef.current = ethersReadonlyProvider;
-  }, [ethersReadonlyProvider]);
-
-  useEffect(() => {
-    chainIdRef.current = chainId;
-  }, [chainId]);
-
-  useEffect(() => {
-    if (!fheCounter) return;
-    fheCounterRef.current = fheCounter as FHECounterInfo;
-    addressRef.current = fheCounter.address;
-  }, [fheCounter]);
-
-  // Read count handle
-  const canGetCount = useMemo(
-    () => Boolean(fheCounter?.address && ethersReadonlyProvider && !isRefreshing),
-    [fheCounter?.address, ethersReadonlyProvider, isRefreshing],
-  );
-
-  const refreshCountHandle = useCallback(() => {
-    if (isRefreshing) return;
-
-    const now = Date.now();
-    if (now - lastRefreshRef.current < MIN_REFRESH_MS) return;
-    lastRefreshRef.current = now;
-    const currentProvider = providerRef.current;
-    const currentAddress = addressRef.current;
-    const currentChainId = chainIdRef.current;
-    if (!fheCounterRef.current || !currentAddress || !currentChainId || !currentProvider) return;
-
-    setIsRefreshing(true);
-    const thisAddress = currentAddress;
-    const thisChainId = currentChainId;
-    const contract = new ethers.Contract(thisAddress, fheCounterRef.current.abi, currentProvider);
-    contract
-      .getCount()
-      .then((value: string) => {
-        if (thisChainId === chainIdRef.current && thisAddress === addressRef.current) setCountHandle(value);
-      })
-      .catch(e => setMessage("FHECounter.getCount() failed: " + (e instanceof Error ? e.message : String(e))))
-      .finally(() => setIsRefreshing(false));
-  }, [isRefreshing]);
-
-  useEffect(() => {
-    if (!fheCounter?.address || !ethersReadonlyProvider) return;
-    const t = window.setTimeout(() => refreshCountHandle(), 300);
-    return () => window.clearTimeout(t);
-  }, [fheCounter?.address, ethersReadonlyProvider, chainId, refreshCountHandle]);
-
-  // Decrypt (reuse existing decrypt hook for simplicity)
+  // 2) Decrypt: prepare a single decrypt request when we have a handle
+  const ZERO_HANDLE =
+    "0x0000000000000000000000000000000000000000000000000000000000000000" as const;
   const requests = useMemo(() => {
-    if (!fheCounter?.address || !countHandle || countHandle === ethers.ZeroHash) return undefined;
-    return [{ handle: countHandle, contractAddress: fheCounter.address } as const];
-  }, [fheCounter?.address, countHandle]);
+    if (!fheCounter?.address || !handle || handle === ZERO_HANDLE) return undefined;
+    return [{ handle: handle as string, contractAddress: fheCounter.address } as const];
+  }, [fheCounter?.address, handle]);
 
-  const {
-    canDecrypt,
-    decrypt,
-    isDecrypting,
-    message: decMsg,
-    results,
-  } = useFHEDecrypt({
+  const { canDecrypt, decrypt, isDecrypting, message: decryptMessage, results } = useFHEDecrypt({
     instance,
     ethersSigner,
     fhevmDecryptionSignatureStorage,
@@ -112,93 +58,101 @@ export const useFHECounterWagmi = (parameters: {
     requests,
   });
 
-  useEffect(() => {
-    if (decMsg) setMessage(decMsg);
-  }, [decMsg]);
+  // Derived decrypted value (if available)
+  const clear = useMemo(() => {
+    if (!handle) return undefined;
+    if (handle === ZERO_HANDLE) return BigInt(0);
+    return results[handle as string] as bigint | undefined;
+  }, [handle, results]);
+  const isDecrypted = useMemo(() => Boolean(handle && typeof clear !== "undefined"), [handle, clear]);
 
-  const clearCount = useMemo(() => {
-    if (!countHandle) return undefined;
-    if (countHandle === ethers.ZeroHash) return { handle: countHandle, clear: BigInt(0) } as const;
-    const clear = results[countHandle];
-    if (typeof clear === "undefined") return undefined;
-    return { handle: countHandle, clear } as const;
-  }, [countHandle, results]);
-
-  const isDecrypted = Boolean(countHandle && clearCount?.handle === countHandle);
-  const decryptCountHandle = decrypt;
-
-  // Mutations (increment/decrement)
+  // 3) Write: encrypt input and call increment/decrement
   const { encryptWith } = useFHEEncryption({ instance, ethersSigner, contractAddress: fheCounter?.address });
+  const { writeContractAsync } = useScaffoldWriteContract({ contractName: "FHECounter" });
+
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [message, setMessage] = useState<string>("");
+
   const canUpdateCounter = useMemo(
-    () => Boolean(fheCounter?.address && instance && ethersSigner && !isProcessing),
-    [fheCounter?.address, instance, ethersSigner, isProcessing],
+    () => Boolean(isConnected && instance && ethersSigner && fheCounter?.address && fheCounter?.abi && !isProcessing),
+    [isConnected, instance, ethersSigner, fheCounter?.address, fheCounter?.abi, isProcessing],
   );
 
+  /**
+   * updateCounter(+1 | -1)
+   * - Encrypts the absolute value using the correct FHE external type
+   * - Builds params [encryptedHandle, inputProof]
+   * - Sends the tx via Scaffold-ETH write hook
+   */
   const updateCounter = useCallback(
-    async (value: number) => {
-      if (isProcessing || !canUpdateCounter || value === 0) return;
-      const op = value > 0 ? "increment" : "decrement";
-      const valueAbs = Math.abs(value);
-      setIsProcessing(true);
-      setMessage(`Starting ${op}(${valueAbs})...`);
+    async (delta: number) => {
+      if (!canUpdateCounter || !fheCounter?.abi) return;
+      if (delta === 0) return;
+
+      const op = delta > 0 ? "increment" : "decrement";
+      const valueAbs = Math.abs(delta);
+
       try {
-        const functionName = op;
-        const functionAbi = fheCounter?.abi.find(item => item.type === "function" && item.name === functionName);
-        if (!functionAbi) return setMessage(`Function ABI not found for ${functionName}`);
-        if (!functionAbi.inputs || functionAbi.inputs.length === 0)
-          return setMessage(`No inputs found for ${functionName}`);
-        const firstInput = functionAbi.inputs[0]!;
-        const method = getEncryptionMethod(firstInput.internalType);
-        setMessage(`Encrypting with ${method}...`);
-        const enc = await encryptWith(builder => {
+        setIsProcessing(true);
+        setMessage(`Encrypting ${valueAbs} and calling ${op}...`);
+
+        // Figure out which FHE external type the function expects
+        const fn = (fheCounter.abi as any[]).find((item: any) => item.type === "function" && item.name === op) as
+          | { inputs?: { internalType: string }[] }
+          | undefined;
+        if (!fn || !fn.inputs || fn.inputs.length === 0) {
+          setMessage(`ABI for ${op} not found or has no inputs`);
+          return;
+        }
+        const method = getEncryptionMethod(fn.inputs[0]!.internalType);
+
+        // Build encrypted inputs
+        const enc = await encryptWith((builder: any) => {
           (builder as any)[method](valueAbs);
         });
-        if (!enc) return setMessage("Encryption failed");
+        if (!enc) {
+          setMessage("Encryption failed");
+          return;
+        }
 
-        if (!fheCounter?.address || !ethersSigner) return setMessage("Contract info or signer not available");
-        const contract = new ethers.Contract(fheCounter.address, fheCounter.abi, ethersSigner);
-        const params = buildParamsFromAbi(enc, [...fheCounter.abi] as any[], functionName);
-        const tx = await (op === "increment" ? contract.increment(...params) : contract.decrement(...params));
-        setMessage("Waiting for transaction...");
-        await tx.wait();
-        setMessage(`${op}(${valueAbs}) completed!`);
-        refreshCountHandle();
+        // Build params aligned with the ABI [externalEuint32, inputProof]
+        const params = buildParamsFromAbi(enc, fheCounter.abi as any[], op);
+
+        setMessage("Sending transaction...");
+        await writeContractAsync({ functionName: op as any, args: params as any[] });
+        setMessage(`${op}(${valueAbs}) sent. Waiting for confirmations...`);
       } catch (e) {
         setMessage(`${op} failed: ${e instanceof Error ? e.message : String(e)}`);
       } finally {
         setIsProcessing(false);
       }
     },
-    [
-      isProcessing,
-      canUpdateCounter,
-      fheCounter?.address,
-      fheCounter?.abi,
-      ethersSigner,
-      encryptWith,
-      refreshCountHandle,
-    ],
+    [canUpdateCounter, fheCounter?.abi, encryptWith, writeContractAsync],
   );
 
   return {
+    // Contract info
     contractAddress: fheCounter?.address,
+
+    // Read/Decrypt
+    handle: handle as string | undefined,
+    clear,
+    isDecrypted,
     canDecrypt,
-    canGetCount,
+    decryptCountHandle: decrypt,
+    isDecrypting,
+
+    // Write
     canUpdateCounter,
     updateCounter,
-    decryptCountHandle,
-    refreshCountHandle,
-    isDecrypted,
-    message,
-    clear: clearCount?.clear,
-    handle: countHandle,
-    isDecrypting,
-    isRefreshing,
     isProcessing,
-    // Wagmi-specific values
+
+    // UX helpers
+    message: decryptMessage || message,
+
+    // Wagmi basics
     chainId,
-    accounts,
     isConnected,
     ethersSigner,
-  };
+  } as const;
 };
